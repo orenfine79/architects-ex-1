@@ -1,3 +1,5 @@
+from datasets import fingerprint
+from jinja2 import optimizer
 import os
 import math
 import time
@@ -342,6 +344,8 @@ def get_lr(it):
 
 # optimize!
 optimizer = model.configure_optimizers(weight_decay=0.1, learning_rate=max_lr, device_type=device_type)
+lr = get_lr(max_steps)
+optimizer = torch.optim.AdamW(model.parameters(), lr)
 
 # create the log directory we will write checkpoints to and log to
 log_dir = "log"
@@ -354,9 +358,25 @@ for step in range(max_steps):
     t0 = time.time()
     last_step = (step == max_steps - 1)
 
-    
     # TODO: Implement the training step
+    # Oren Fine
+    optimizer.zero_grad()
+    train_input = train_loader.next_batch()[0]
+    train_target = train_loader.next_batch()[1]
+
+    train_input = train_input.to(device)
+    train_target = train_target.to(device)
+
+    logits, loss = model.forward(train_input, train_target)
+    loss.backward()
     
+    norm = 1.0
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=norm)
+
+    optimizer.step()
+    print(f"step {step}, loss {loss.item()}") 
+    loss_accum = loss
+
     
     if device_type == "cuda":
         torch.cuda.synchronize() # wait for the GPU to finish work

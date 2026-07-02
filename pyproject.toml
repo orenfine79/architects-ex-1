@@ -1,0 +1,16 @@
+[project]
+name = "architects-ex-1"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "datasets>=5.0.0",
+    "modal>=1.5.1",
+    "numpy>=2.5.0",
+    "requests>=2.34.2",
+    "tiktoken>=0.13.0",
+    "torch>=2.12.1",
+    "tqdm>=4.68.3",
+    "transformers>=5.12.1",
+]

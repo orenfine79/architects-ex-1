@@ -315,14 +315,12 @@ if torch.cuda.is_available():
 
 enc = tiktoken.get_encoding("gpt2")
 
-B = 4 # micro batch size
-T = 32 # sequence length
-
 parser = argparse.ArgumentParser()
-parser.add_argument("--batch-size", "-B", type=int, default=16, help="micro batch size")
-parser.add_argument("--seq-len", "-T", type=int, default=1024, help="sequence length")
+parser.add_argument("--batch-size", "-B", type=int, default=4, help="micro batch size")
+parser.add_argument("--seq-len", "-T", type=int, default=32, help="sequence length")
 parser.add_argument("--precision", choices=["basic", "mixed"], default="basic",
                     help="'basic' for fp32 forward, 'mixed' for bfloat16 autocast forward")
+parser.add_argument("--max-steps", type=int, default=100, help="number of training steps")
 args = parser.parse_args()
 
 B = args.batch_size # micro batch size
@@ -340,7 +338,7 @@ model.to(device)
 max_lr = 6e-4
 min_lr = max_lr * 0.1
 warmup_steps = 715
-max_steps = 100 # 19,073 steps is ~1 epoch, if data is 10B tokens and batch size 0.5M tokens
+max_steps = args.max_steps # 19,073 steps is ~1 epoch, if data is 10B tokens and batch size 0.5M tokens
 
 def get_lr(it):
     # 1) linear warmup for warmup_iters steps
@@ -380,7 +378,7 @@ for step in range(max_steps):
     if args.precision == "basic":
         logits, loss = model.forward(train_input, train_target)
     else:  # "mixed"
-        with torch.amp.autocast(device_type=device, dtype=torch.bfloat16):
+        with torch.autocast(device_type=device, dtype=torch.bfloat16):
             logits, loss = model.forward(train_input, train_target)
     
     #import code; code.interact(local=locals())

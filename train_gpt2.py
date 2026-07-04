@@ -227,7 +227,7 @@ class DataLoaderLite:
         assert split in {'train', 'val'}
 
         # get the shard filenames
-        data_root = "/mnt/data/edu_fineweb10B"
+        data_root = "edu_fineweb10B" #"/mnt/data/edu_fineweb10B"
         shards = os.listdir(data_root)
         shards = [s for s in shards if split in s]
         shards = sorted(shards)
@@ -359,6 +359,7 @@ for step in range(max_steps):
     train_input, train_target = train_input.to(device), train_target.to(device)
 
     logits, loss = model.forward(train_input, train_target)
+    #import code; code.interact(local=locals())
     loss.backward()
     
     norm = 1.0
@@ -366,26 +367,26 @@ for step in range(max_steps):
 
     optimizer.step()
     
-    if (step % 20 == 0):
+    if ((step + 1)% 20 == 0):
         val_input, val_target = val_loader.next_batch()
         val_input, val_target = val_input.to(device), val_target.to(device)
         
-        logits, loss = model.forward(val_input, val_target)
+        vlogits, vloss = model.forward(val_input, val_target)
     
-        print("Validation: ")
+        print(f"V loss: {vloss.item():.6f}")
 
-        if device_type == "cuda":
-            torch.cuda.synchronize() # wait for the GPU to finish work
+    if device_type == "cuda":
+        torch.cuda.synchronize() # wait for the GPU to finish work
 
-        # Print loss and token throughput
-        t1 = time.time()
-        dt = t1 - t0 # time difference in seconds
-        tokens_processed = train_loader.B * train_loader.T * ddp_world_size
-        tokens_per_sec = tokens_processed / dt
-        if master_process:
-            print(f"step {step:5d} | loss: {loss.item():.6f} | lr {lr:.4e} | norm: {norm:.4f} | dt: {dt*1000:.2f}ms | tok/sec: {tokens_per_sec:.2f}")
-            with open(log_file, "a") as f:
-                f.write(f"{step} train {loss.item():.6f}\n")
+    # Print loss and token throughput
+    t1 = time.time()
+    dt = t1 - t0 # time difference in seconds
+    tokens_processed = train_loader.B * train_loader.T * ddp_world_size
+    tokens_per_sec = tokens_processed / dt
+    if master_process:
+        print(f"step {step:5d} | loss: {loss.item():.6f} | lr {lr:.4e} | norm: {norm:.4f} | dt: {dt*1000:.2f}ms | tok/sec: {tokens_per_sec:.2f}")
+        with open(log_file, "a") as f:
+            f.write(f"{step} train {loss.item():.6f}\n")
 
 if ddp:
     destroy_process_group()

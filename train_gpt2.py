@@ -230,7 +230,7 @@ class DataLoaderLite:
         # LOCAL
         data_root = "edu_fineweb10B" 
         # NEBIUS 
-        #data_root = "/mnt/data/edu_fineweb10B"
+        data_root = "/mnt/data/edu_fineweb10B"
         
         shards = os.listdir(data_root)
         shards = [s for s in shards if split in s]

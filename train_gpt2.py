@@ -4,6 +4,7 @@ import os
 import math
 import time
 import inspect
+import argparse
 from dataclasses import dataclass
 import torch
 import torch.nn as nn
@@ -310,8 +311,16 @@ if torch.cuda.is_available():
 
 enc = tiktoken.get_encoding("gpt2")
 
-B = 16 # 4 # micro batch size
-T = 1024 # 64 # sequence length
+B = 4 # micro batch size
+T = 32 # sequence length
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--batch-size", "-B", type=int, default=16, help="micro batch size")
+parser.add_argument("--seq-len", "-T", type=int, default=1024, help="sequence length")
+args = parser.parse_args()
+
+B = args.batch_size # micro batch size
+T = args.seq_len # sequence length
 
 train_loader = DataLoaderLite(B=B, T=T, process_rank=ddp_rank, num_processes=ddp_world_size, split="train")
 val_loader = DataLoaderLite(B=B, T=T, process_rank=ddp_rank, num_processes=ddp_world_size, split="val")

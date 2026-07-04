@@ -5,6 +5,7 @@ import math
 import time
 import inspect
 import argparse
+import platform
 from dataclasses import dataclass
 import torch
 import torch.nn as nn
@@ -227,11 +228,14 @@ class DataLoaderLite:
         self.num_processes = num_processes
         assert split in {'train', 'val'}
 
+        print(platform.system())
         # get the shard filenames
-        # LOCAL
-        data_root = "edu_fineweb10B" 
-        # NEBIUS 
-        data_root = "/mnt/data/edu_fineweb10B"
+        if platform.system() == "Darwin":
+            # LOCAL (Mac)
+            data_root = "edu_fineweb10B"
+        else:
+            # NEBIUS
+            data_root = "/mnt/data/edu_fineweb10B"
         
         shards = os.listdir(data_root)
         shards = [s for s in shards if split in s]

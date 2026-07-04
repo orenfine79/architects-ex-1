@@ -230,8 +230,8 @@ class DataLoaderLite:
         # LOCAL
         data_root = "edu_fineweb10B" 
         # NEBIUS 
-        data_root = "/mnt/data/edu_fineweb10B"
-
+        #data_root = "/mnt/data/edu_fineweb10B"
+        
         shards = os.listdir(data_root)
         shards = [s for s in shards if split in s]
         shards = sorted(shards)
@@ -310,8 +310,8 @@ if torch.cuda.is_available():
 
 enc = tiktoken.get_encoding("gpt2")
 
-B = 16 # micro batch size
-T = 1024 # sequence length
+B = 16 # 4 # micro batch size
+T = 1024 # 64 # sequence length
 
 train_loader = DataLoaderLite(B=B, T=T, process_rank=ddp_rank, num_processes=ddp_world_size, split="train")
 val_loader = DataLoaderLite(B=B, T=T, process_rank=ddp_rank, num_processes=ddp_world_size, split="val")
@@ -363,6 +363,10 @@ for step in range(max_steps):
     train_input, train_target = train_input.to(device), train_target.to(device)
 
     logits, loss = model.forward(train_input, train_target)
+
+    with torch.amp.autocast(device_type=device, dtype=torch.bfloat16):
+        logits, loss = model.forward(train_input, train_target)
+    
     #import code; code.interact(local=locals())
     loss.backward()
     

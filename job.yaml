@@ -1,0 +1,13 @@
+name: ex1_3-orenfine
+image: cr.eu-north1.nebius.cloud/e00v1er5fasm8gmdwy/apex-ex-1
+container_command: bash
+args:
+  - "-c"
+  - "git clone https://github.com/orenfine79/architects-ex-1.git && cd architects-ex-1 && python train_gpt2.py"
+platform: gpu-l40s-d
+preset: 1gpu-16vcpu-96gb
+timeout: 20m
+volumes:
+  - computefilesystem-e00hnnpfn5rr5aavma:/mnt/data
+ssh_authorized_keys:
+  - "ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDSdVXgRTtWab697qwJRGdGbcFJvAS2RI3SXsaJ5FrpGOxn4+MrI2D4B9xqBrCHkFAvmFw+DDmQnQK6OJbMoDcDdOQVRBW7b0hpBFTE0lksHCjmPvPF8Ob3Ngewl1I3tQC8g1bft9jXoNkQVGc5ZuBDnMRbsdpCobHAqce2I5x9suxzwZjFZ9vxSJZ80/SWmngoczzxTzm5Fk1Q/NCbEnZ/v10j3HVw1ng7HxXGuKyuHhUD6bOsEHBsjM9/3IyvHIO5f9MaoJXIM3wiJnAlWGGdc/Dfml0m/JkHJV8gT+E/GToI43pTybkT0LYjfoNDBI/a/8i/hBxfbUriU4AuBOsraIdDKYcq40D83f8SrSxmRAQ8jcVaV1mzP6x+52bXZjENPyR2wT+pHM6XNkgvNy+bkoc2EAIGlnhu4gUzgp//B+dCyBiKKO8KWXRNDkabAi220WIurmbyGn7c2UQUGMTtz1YZTvQ/GzYSeyhrYHea/Zkhy8+/1wcFmQ53oqGNp1U= orenfine@Orens-MacBook-Pro.local"

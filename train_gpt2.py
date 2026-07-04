@@ -40,11 +40,13 @@ class CausalSelfAttention(nn.Module):
         q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
 
-        # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-        # att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
-        # att = F.softmax(att, dim=-1)
-        # y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
-        y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        if args.flash_attention:
+            y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        else:
+            att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+            att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+            att = F.softmax(att, dim=-1)
+            y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
 
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
         # output projection
@@ -324,6 +326,8 @@ parser.add_argument("--seq-len", "-T", type=int, default=32, help="sequence leng
 parser.add_argument("--precision", choices=["basic", "mixed"], default="basic",
                     help="'basic' for fp32 forward, 'mixed' for bfloat16 autocast forward")
 parser.add_argument("--max-steps", type=int, default=100, help="number of training steps")
+parser.add_argument("--flash-attention", action="store_true",
+                    help="use F.scaled_dot_product_attention (flash) instead of manual attention")
 args = parser.parse_args()
 
 B = args.batch_size # micro batch size

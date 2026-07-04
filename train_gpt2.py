@@ -317,6 +317,8 @@ T = 32 # sequence length
 parser = argparse.ArgumentParser()
 parser.add_argument("--batch-size", "-B", type=int, default=16, help="micro batch size")
 parser.add_argument("--seq-len", "-T", type=int, default=1024, help="sequence length")
+parser.add_argument("--precision", choices=["basic", "mixed"], default="basic",
+                    help="'basic' for fp32 forward, 'mixed' for bfloat16 autocast forward")
 args = parser.parse_args()
 
 B = args.batch_size # micro batch size
@@ -371,10 +373,11 @@ for step in range(max_steps):
     train_input, train_target = train_loader.next_batch()
     train_input, train_target = train_input.to(device), train_target.to(device)
 
-    logits, loss = model.forward(train_input, train_target)
-
-    with torch.amp.autocast(device_type=device, dtype=torch.bfloat16):
+    if args.precision == "basic":
         logits, loss = model.forward(train_input, train_target)
+    else:  # "mixed"
+        with torch.amp.autocast(device_type=device, dtype=torch.bfloat16):
+            logits, loss = model.forward(train_input, train_target)
     
     #import code; code.interact(local=locals())
     loss.backward()

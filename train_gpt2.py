@@ -390,20 +390,24 @@ for step in range(max_steps):
         with torch.autocast(device_type=device, dtype=torch.bfloat16):
             logits, loss = model.forward(train_input, train_target)
     
-    #import code; code.interact(local=locals())
     loss.backward()
     
-    norm = 1.0
-    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=norm)
+    norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+    # adjust the learning rate
+    lr = get_lr(step)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
 
     optimizer.step()
     
     if ((step + 1)% 20 == 0):
-        val_input, val_target = val_loader.next_batch()
-        val_input, val_target = val_input.to(device), val_target.to(device)
-        
-        vlogits, vloss = model.forward(val_input, val_target)
-    
+        model.eval()
+        with torch.no_grad():
+            val_input, val_target = val_loader.next_batch()
+            val_input, val_target = val_input.to(device), val_target.to(device)
+            vlogits, vloss = model.forward(val_input, val_target)
+        model.train()
         print(f"V loss: {vloss.item():.6f}")
 
     if device_type == "cuda":
